@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
  * <p>
  * 测试 Controller
@@ -20,16 +18,16 @@ import java.util.List;
 @Slf4j
 @RestController
 public class TestController {
-    @WatchLog
+    @WatchLog(isUsingJson = true)
     @GetMapping("/test")
     public User test(User user, Boolean yes) {
         log.info("{}", user);
         return user;
     }
 
-    @WatchLog(isUsingJson = true)
+    @WatchLog(isUsingJson = true, expandDepth = 2)
     @PostMapping("/test")
-    public List<String> test2(@RequestBody List<String> user) {
+    public User test2(@RequestBody User user) {
         log.info("{}", user);
         return user;
     }
