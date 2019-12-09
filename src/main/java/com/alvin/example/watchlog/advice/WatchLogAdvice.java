@@ -4,8 +4,12 @@ import com.alvin.example.watchlog.advice.annotation.WatchLog;
 import com.alvin.example.watchlog.util.ObjectViewUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.BeanUtils;
+import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +37,10 @@ public class WatchLogAdvice {
         long start = System.currentTimeMillis();
         Object[] args = jp.getArgs();
         Object returnObj = jp.proceed(args);
+
+        // 保存原始数据，避免敏感数据脱敏时修改原始数据，导致返回前端的数据不同步
+        Object old = returnObj.getClass().newInstance();
+        BeanUtils.copyProperties(returnObj,old);
 
         MethodSignature signature = (MethodSignature) jp.getSignature();
         String className = jp.getSignature().getDeclaringType().getSimpleName();
@@ -66,7 +74,7 @@ public class WatchLogAdvice {
             log.info(logPlaceHolder.toString(), logArgs.toArray());
         }
 
-        return returnObj;
+        return old;
     }
 
 }

@@ -2,6 +2,7 @@ package com.alvin.example.watchlog.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alvin.example.watchlog.advice.annotation.Sensitive;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -71,15 +72,14 @@ public class ObjectViewUtil {
         try {
             if (config.isUsingJson()) {
                 if (config.isIgnoreNullField()) {
-                    return JSON.toJSONString(object, SerializerFeature.IgnoreErrorGetter);
+                    return JSON.toJSONString(object, new SensitizeFilter(), SerializerFeature.IgnoreErrorGetter);
                 }
-                return JSON.toJSONString(object, SerializerFeature.IgnoreErrorGetter, SerializerFeature.WriteMapNullValue);
+                return JSON.toJSONString(object, new SensitizeFilter(), SerializerFeature.IgnoreErrorGetter, SerializerFeature.WriteMapNullValue);
             }
             renderObject(object, buf, config);
             return buf.toString();
         } catch (ObjectTooLargeException e) {
-            buf.append(" Object size exceeds size limit: ")
-                    .append(MAX_OBJECT_LENGTH);
+            buf.append(" Object size exceeds size limit: ").append(MAX_OBJECT_LENGTH);
             return buf.toString();
         } catch (Throwable t) {
             return "ERROR DATA!!!";
@@ -102,13 +102,7 @@ public class ObjectViewUtil {
             String className = clazz.getSimpleName();
 
             // 7种基础类型,直接输出@类型[值]
-            if (obj instanceof Integer
-                    || obj instanceof Long
-                    || obj instanceof Float
-                    || obj instanceof Double
-                    || obj instanceof Short
-                    || obj instanceof Byte
-                    || obj instanceof Boolean) {
+            if (obj instanceof Integer || obj instanceof Long || obj instanceof Float || obj instanceof Double || obj instanceof Short || obj instanceof Byte || obj instanceof Boolean) {
                 appendStringBuilder(buf, format("@%s[%s]", className, obj));
             }
 
@@ -408,6 +402,11 @@ public class ObjectViewUtil {
                             if (Objects.isNull(value) && ignoreNullField) {
                                 continue;
                             }
+
+                            if (String.class == field.getType() && field.getAnnotation(Sensitive.class) != null) {
+                                value = SensitizeFilter.SENSITIVE_DATA;
+                            }
+
                             appendInnerIndentation(buf, config, depth);
                             appendStringBuilder(buf, field.getName());
                             appendStringBuilder(buf, "=");
