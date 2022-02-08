@@ -381,7 +381,7 @@ public class ObjectViewUtil {
             // 普通Object输出
             else {
                 if (reachConfiguredDepth(depth, expand)) {
-                    appendStringBuilder(buf, format("@%s[%s]", className, obj));
+                    appendStringBuilder(buf, format("@%s[..]", className));
                 } else {
                     appendStringBuilder(buf, format("@%s[", className));
                     List<Field> fields = new ArrayList<>();
